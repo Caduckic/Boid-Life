@@ -1,11 +1,17 @@
+#ifndef _ENGINE_HPP
+#define _ENGINE_HPP
+
 #ifdef WIN32
     #include <windows.h>
 #endif
 
 #include <memory>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+
+#include "boid.hpp"
 
 class Engine {
 private:
@@ -17,10 +23,12 @@ private:
     float lastDownY {};
     bool isMouseDragging {false};
 
+    // Delta Time Logic (for framerate independace)
     sf::Clock deltaClock;
     sf::Time dt;
     float deltaTime;
 
+    std::vector<Boid> boids;
 
     void updateDeltaTime() {
         dt = deltaClock.restart();
@@ -36,9 +44,14 @@ private:
         #endif
     }
 
+    void initBoids() {
+        boids.push_back(Boid());
+    }
+
 public:
     Engine() {
         initWindow();
+        initBoids();
     }
 
     virtual ~Engine() = default;
@@ -81,13 +94,22 @@ public:
 
     void update() {
         updateDeltaTime();
+
+        for (size_t i {0}; i < boids.size(); i++) {
+            boids.at(i).update(deltaTime);
+        }
     }
 
     void render() {
         window->clear();
 
             // rendering boids
+            for (auto boid : boids) {
+                boid.render(*window);
+            }
 
         window->display();
     }
 };
+
+#endif
