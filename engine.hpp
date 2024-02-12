@@ -12,6 +12,7 @@
 #include <SFML/System.hpp>
 
 #include "boid.hpp"
+#include "CONFIG.hpp"
 
 class Engine {
 private:
@@ -36,7 +37,7 @@ private:
     }
 
     void initWindow() {
-        window = std::make_shared<sf::RenderWindow>(sf::VideoMode(200,200), "Boid Life", sf::Style::None);
+        window = std::make_shared<sf::RenderWindow>(sf::VideoMode(WINDOW_SIZE.x, WINDOW_SIZE.y), "Boid Life", sf::Style::None);
         window->setFramerateLimit(240);
         #ifdef WIN32
             HWND hwnd = window->getSystemHandle();
@@ -45,7 +46,7 @@ private:
     }
 
     void initBoids() {
-        boids.push_back(Boid());
+        boids.push_back(Boid({100.f, 100.f}, {-1.f, -0.3f}));
     }
 
 public:
