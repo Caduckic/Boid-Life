@@ -2,6 +2,7 @@
 #define _BOID_HPP_
 
 #include <cmath>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -16,6 +17,8 @@ private:
 
     sf::Vector2f dir;
     float speed {50.f};
+    float rotSpeed {50.f};
+    bool inputting {false};
 
     sf::Vector2f targetDir {0.f, 0.f};
 
@@ -55,32 +58,52 @@ public:
     }
 
     // temp to test out rendering at edges of the window
-    void input() {
-        dir = {0.f, 0.f};
+    void input(float deltaTime) {
+        inputting = false;
+        targetDir = {0.f, 0.f};
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            dir.x -= 1.f;
+            targetDir.x -= 1.f;
+            inputting = true;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            dir.x = 1.f;
+            targetDir.x += 1.f;
+            inputting = true;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            dir.y += 1.f;
+            targetDir.y += 1.f;
+            inputting = true;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            dir.y -= 1.f;
+            targetDir.y -= 1.f;
+            inputting = true;
         }
-        dir = normalize(dir);
+        targetDir = normalize(targetDir);
     }
 
-    void updateRotation() {
-        float rot = atan2(dir.y, dir.x)*180.f/M_PI;
-        shape.setRotation(rot);
-        ghostShape.setRotation(rot);
+    void updateRotation(float deltaTime) {
+        // this will need to be refactored at some point
+        // currently you can't move pure left, it will just go right
+        float angle = shape.getRotation()*M_PI/180.f;
+        float targetAngle = fmod(atan2(targetDir.y,targetDir.x),M_PI);
+        if (targetAngle <= 0) targetAngle = (M_PI*2) + targetAngle;
+        dir = {static_cast<float>(cos(angle)), static_cast<float>(sin(angle)),};
+
+        if (inputting) {
+            float minusAngle = targetAngle - angle;
+            if (minusAngle > M_PI || (minusAngle < 0.f && minusAngle > -M_PI)) {
+                shape.rotate(-rotSpeed * deltaTime);
+            }
+            else if ((minusAngle < M_PI && minusAngle >= 0.f) || minusAngle < -M_PI) {
+                shape.rotate(rotSpeed * deltaTime);
+            }
+        }
+        
+        ghostShape.setRotation(shape.getRotation());
     }
 
     void update(float deltaTime) {
-        input();
-        updateRotation();
+        input(deltaTime);
+        updateRotation(deltaTime);
         shape.move(dir * speed * deltaTime);
         updateBoundsColliding();
     }
