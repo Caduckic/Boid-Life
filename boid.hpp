@@ -9,19 +9,22 @@
 class Boid {
 private:
     sf::ConvexShape shape;
+    sf::ConvexShape ghostShape; // used for drawing extra when boid passes window edge
 
     sf::Vector2f dir;
     float speed {50.f};
 
     void initShape(sf::Vector2f pos) {
         shape.setPointCount(3);
-        shape.setPoint(0, sf::Vector2f(5.f, 0.f));
-        shape.setPoint(1, sf::Vector2f(10.f, 15.f));
-        shape.setPoint(2, sf::Vector2f(0.f, 15.f));
+        shape.setPoint(0, BOID_POINTS[0]);
+        shape.setPoint(1, BOID_POINTS[1]);
+        shape.setPoint(2, BOID_POINTS[2]);
         shape.setOrigin(sf::Vector2f(5.f, 7.5f));
 
         shape.setFillColor(sf::Color::Blue);
         shape.setPosition(pos);
+
+        ghostShape = shape;
     }
 
 public:
@@ -46,13 +49,55 @@ public:
         }
     }
 
+    // temp to test out rendering at edges of the window
+    void input() {
+        dir = {0.f, 0.f};
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            dir.x -= 1.f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            dir.x = 1.f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            dir.y += 1.f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            dir.y -= 1.f;
+        }
+    }
+
     void update(float deltaTime) {
+        input();
         shape.move(dir * speed * deltaTime);
         updateBoundsColliding();
     }
 
     void render(sf::RenderTarget& target) {
         target.draw(shape);
+        sf::Vector2f pos = shape.getPosition();
+        
+        // use 15 as its the largest the shape is able to be
+        bool showGhost {false};
+        if (pos.x < 15.f) {
+            ghostShape.setPosition(pos.x + 200.f, pos.y);
+            showGhost = true;
+        }
+        else if (pos.x > WINDOW_SIZE.x - 15.f) {
+            ghostShape.setPosition(pos.x - 200.f, pos.y);
+            showGhost = true;
+        }
+        if (pos.y < 15.f) {
+            ghostShape.setPosition(pos.x, pos.y + 200.f);
+            showGhost = true;
+        }
+        else if (pos.y > WINDOW_SIZE.y - 15.f) {
+            ghostShape.setPosition(pos.x, pos.y - 200.f);
+            showGhost = true;
+        }
+
+        if (showGhost) {
+            target.draw(ghostShape);
+        }
     }
 };
 
