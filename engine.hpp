@@ -46,7 +46,9 @@ private:
     }
 
     void initBoids() {
-        boids.push_back(Boid({100.f, 100.f}, {-1.f, -0.3f}));
+        for (size_t i {0}; i < 200; i++) {
+            boids.push_back(Boid({100.f+i, 100.f+i}, {-1.f, -0.3f}));
+        }
     }
 
 public:
@@ -97,6 +99,21 @@ public:
         updateDeltaTime();
 
         for (size_t i {0}; i < boids.size(); i++) {
+            for (size_t j {0}; j < boids.size(); j++) {
+                if (i != j) {
+                    float distance = getDistance(boids.at(i).getPosition(), boids.at(j).getPosition());
+                    // doesn't really make any sense currently, but hey we have basic boids for now at least
+                    boids.at(i).addToTargetDir(boids.at(i).getPosition() - boids.at(j).getPosition(), distance);
+                }
+                float distance = getDistance(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f}, boids.at(i).getPosition());
+                boids.at(i).addToTargetDir(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f} - boids.at(i).getPosition(), distance/2.f);
+                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,WINDOW_SIZE.y}, distance/0.5f);
+                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,0.f}, distance/0.5f);
+                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, WINDOW_SIZE.y}, distance/0.5f);
+                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, 0.f}, distance/0.5f);
+            }
+            boids.at(i).normalizeTargetDir();
+
             boids.at(i).update(deltaTime);
         }
     }

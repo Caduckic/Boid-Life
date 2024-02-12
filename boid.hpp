@@ -80,6 +80,14 @@ public:
         targetDir = normalize(targetDir);
     }
 
+    void addToTargetDir(sf::Vector2f extraDir, float distance) {
+        targetDir += extraDir / distance;
+    }
+
+    void normalizeTargetDir() {
+        targetDir = normalize(targetDir);
+    }
+
     void updateRotation(float deltaTime) {
         // this will need to be refactored at some point
         // currently you can't move pure left, it will just go right
@@ -88,21 +96,19 @@ public:
         if (targetAngle <= 0) targetAngle = (M_PI*2) + targetAngle;
         dir = {static_cast<float>(cos(angle)), static_cast<float>(sin(angle)),};
 
-        if (inputting) {
-            float minusAngle = targetAngle - angle;
-            if (minusAngle > M_PI || (minusAngle < 0.f && minusAngle > -M_PI)) {
-                shape.rotate(-rotSpeed * deltaTime);
-            }
-            else if ((minusAngle < M_PI && minusAngle >= 0.f) || minusAngle < -M_PI) {
-                shape.rotate(rotSpeed * deltaTime);
-            }
+        float minusAngle = targetAngle - angle;
+        if (minusAngle > M_PI || (minusAngle < 0.f && minusAngle > -M_PI)) {
+            shape.rotate(-rotSpeed * deltaTime);
+        }
+        else if ((minusAngle < M_PI && minusAngle >= 0.f) || minusAngle < -M_PI) {
+            shape.rotate(rotSpeed * deltaTime);
         }
         
         ghostShape.setRotation(shape.getRotation());
     }
 
     void update(float deltaTime) {
-        input(deltaTime);
+        // input(deltaTime);
         updateRotation(deltaTime);
         shape.move(dir * speed * deltaTime);
         updateBoundsColliding();
@@ -134,6 +140,10 @@ public:
         if (showGhost) {
             target.draw(ghostShape);
         }
+    }
+
+    sf::Vector2f getPosition() {
+        return shape.getPosition();
     }
 };
 

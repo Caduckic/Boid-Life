@@ -21,4 +21,11 @@ float getDot(sf::Vector2<T>& a, sf::Vector2<T>& b) {
         return a.x*b.x + a.y*b.y;
 }
 
+template <class T>
+float getDistance(const sf::Vector2<T>& p1, const sf::Vector2<T>& p2) {
+    float diffY = p1.y - p2.y;
+    float diffX = p1.x - p2.x;
+    return sqrt((diffY * diffY) + (diffX * diffX));
+}
+
 #endif
