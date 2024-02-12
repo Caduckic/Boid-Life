@@ -81,7 +81,8 @@ public:
     }
 
     void addToTargetDir(sf::Vector2f extraDir, float distance) {
-        targetDir += extraDir / distance;
+        targetDir += extraDir / distance * 200.f;
+        std::cout << distance << ": " << targetDir.x << ", " << targetDir.y << std::endl;
     }
 
     void normalizeTargetDir() {

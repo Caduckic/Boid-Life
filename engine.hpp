@@ -13,6 +13,7 @@
 
 #include "boid.hpp"
 #include "CONFIG.hpp"
+#include "helper.hpp"
 
 class Engine {
 private:
@@ -46,7 +47,7 @@ private:
     }
 
     void initBoids() {
-        for (size_t i {0}; i < 200; i++) {
+        for (size_t i {0}; i < 2; i++) {
             boids.push_back(Boid({100.f+i, 100.f+i}, {-1.f, -0.3f}));
         }
     }
@@ -103,14 +104,15 @@ public:
                 if (i != j) {
                     float distance = getDistance(boids.at(i).getPosition(), boids.at(j).getPosition());
                     // doesn't really make any sense currently, but hey we have basic boids for now at least
-                    boids.at(i).addToTargetDir(boids.at(i).getPosition() - boids.at(j).getPosition(), distance);
+                    sf::Vector2f dirToBoid = boids.at(i).getPosition() - boids.at(j).getPosition();
+                    boids.at(i).addToTargetDir(dirToBoid, distance);
                 }
-                float distance = getDistance(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f}, boids.at(i).getPosition());
-                boids.at(i).addToTargetDir(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f} - boids.at(i).getPosition(), distance/2.f);
-                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,WINDOW_SIZE.y}, distance/0.5f);
-                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,0.f}, distance/0.5f);
-                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, WINDOW_SIZE.y}, distance/0.5f);
-                boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, 0.f}, distance/0.5f);
+                // float distance = getDistance(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f}, boids.at(i).getPosition());
+                // boids.at(i).addToTargetDir(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f} - boids.at(i).getPosition(), distance/2.f);
+                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,WINDOW_SIZE.y}, distance/0.5f);
+                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,0.f}, distance/0.5f);
+                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, WINDOW_SIZE.y}, distance/0.5f);
+                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, 0.f}, distance/0.5f);
             }
             boids.at(i).normalizeTargetDir();
 
