@@ -19,9 +19,8 @@
             "mergeConfigurations": false,
             "browse": {
                 "path": [
-                    "/home/caduckic/Documents/sfml/Square Life/Square-Life/**",
                     "/usr/include/**",
-                    "${workspaceFolder}"
+                    "${workspaceFolder}/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }

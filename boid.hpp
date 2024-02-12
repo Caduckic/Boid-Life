@@ -1,8 +1,10 @@
 #ifndef _BOID_HPP_
 #define _BOID_HPP_
 
-#include <cmath>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <iostream>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -21,6 +23,7 @@ private:
     bool inputting {false};
 
     sf::Vector2f targetDir {0.f, 0.f};
+    std::vector<float> angles {}; // this will be for adding the weights
 
     void initShape(sf::Vector2f pos) {
         shape.setPointCount(3);
@@ -80,13 +83,23 @@ public:
         targetDir = normalize(targetDir);
     }
 
-    void addToTargetDir(sf::Vector2f extraDir, float distance) {
-        targetDir += extraDir / distance * 200.f;
-        std::cout << distance << ": " << targetDir.x << ", " << targetDir.y << std::endl;
+    void addRotWeight(sf::Vector2f extraDir, float distance) {
+        // will use distance in the future to determine how much weight to add
+        float newAngle = fmod(atan2(extraDir.y,extraDir.x),M_PI);
+        if (newAngle <= 0) newAngle = (M_PI*2) + newAngle;
+        angles.push_back(newAngle);
     }
 
     void normalizeTargetDir() {
-        targetDir = normalize(targetDir);
+        // averages the rotation weights and applies a normalized vector from it to target dir
+        sf::Vector2f angleDir {0.f,0.f};
+        for (float angle : angles) {
+            angleDir.x += cos(angle);
+            angleDir.y += sin(angle);
+        }
+
+        targetDir = normalize(angleDir);
+        angles.clear();
     }
 
     void updateRotation(float deltaTime) {
@@ -95,7 +108,7 @@ public:
         float angle = shape.getRotation()*M_PI/180.f;
         float targetAngle = fmod(atan2(targetDir.y,targetDir.x),M_PI);
         if (targetAngle <= 0) targetAngle = (M_PI*2) + targetAngle;
-        dir = {static_cast<float>(cos(angle)), static_cast<float>(sin(angle)),};
+        dir = {static_cast<float>(cos(angle)), static_cast<float>(sin(angle))};
 
         float minusAngle = targetAngle - angle;
         if (minusAngle > M_PI || (minusAngle < 0.f && minusAngle > -M_PI)) {

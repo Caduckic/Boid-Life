@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <sstream>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -30,11 +31,29 @@ private:
     sf::Time dt;
     float deltaTime;
 
+    // FPS displaying
+    sf::Clock FPSClock;
+    sf::Font font;
+    sf::Text text;
+    bool displayFPS {true};
+    sf::Time lastTime;
+
     std::vector<Boid> boids;
+    // float GlobalRotation;
 
     void updateDeltaTime() {
         dt = deltaClock.restart();
         deltaTime = dt.asSeconds();
+    }
+
+    void updateFPS() {
+        sf::Time currentTime = FPSClock.getElapsedTime();
+        float fps = 1.0f / (currentTime.asSeconds() - lastTime.asSeconds());
+        lastTime = currentTime;
+
+        std::stringstream ss;
+        ss << "FPS: " << fps;
+        text.setString(ss.str());
     }
 
     void initWindow() {
@@ -47,15 +66,26 @@ private:
     }
 
     void initBoids() {
-        for (size_t i {0}; i < 2; i++) {
+        for (size_t i {0}; i < 200; i++) {
             boids.push_back(Boid({100.f+i, 100.f+i}, {-1.f, -0.3f}));
         }
+    }
+
+    void initFontAndText() {
+        if (!font.loadFromFile("./BebasNeue-Regular.ttf"))
+            std::cerr << "Failed to load font" << std::endl;
+
+        text.setFont(font);
+        text.setFillColor(sf::Color::White);
+        text.setString("NONE");
+        text.setCharacterSize(12);
     }
 
 public:
     Engine() {
         initWindow();
         initBoids();
+        initFontAndText();
     }
 
     virtual ~Engine() = default;
@@ -65,6 +95,8 @@ public:
             pollEvents();
             update();
             render();
+            if (displayFPS)
+                updateFPS();
         }
     }
 
@@ -103,16 +135,12 @@ public:
             for (size_t j {0}; j < boids.size(); j++) {
                 if (i != j) {
                     float distance = getDistance(boids.at(i).getPosition(), boids.at(j).getPosition());
-                    // doesn't really make any sense currently, but hey we have basic boids for now at least
                     sf::Vector2f dirToBoid = boids.at(i).getPosition() - boids.at(j).getPosition();
-                    boids.at(i).addToTargetDir(dirToBoid, distance);
+                    boids.at(i).addRotWeight(dirToBoid, distance);
                 }
+                // boids.at(i).addToTargetDir(sf::Vector2f{1.f, 0.f}, 1.f);
                 // float distance = getDistance(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f}, boids.at(i).getPosition());
-                // boids.at(i).addToTargetDir(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f} - boids.at(i).getPosition(), distance/2.f);
-                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,WINDOW_SIZE.y}, distance/0.5f);
-                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{WINDOW_SIZE.x,0.f}, distance/0.5f);
-                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, WINDOW_SIZE.y}, distance/0.5f);
-                // boids.at(i).addToTargetDir(boids.at(i).getPosition() - sf::Vector2f{0.f, 0.f}, distance/0.5f);
+
             }
             boids.at(i).normalizeTargetDir();
 
@@ -127,6 +155,9 @@ public:
             for (auto boid : boids) {
                 boid.render(*window);
             }
+
+            if (displayFPS)
+                window->draw(text);
 
         window->display();
     }
