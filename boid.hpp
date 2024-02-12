@@ -1,10 +1,13 @@
 #ifndef _BOID_HPP_
 #define _BOID_HPP_
 
+#include <cmath>
+
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 #include "CONFIG.hpp"
+#include "helper.hpp"
 
 class Boid {
 private:
@@ -14,12 +17,14 @@ private:
     sf::Vector2f dir;
     float speed {50.f};
 
+    sf::Vector2f targetDir {0.f, 0.f};
+
     void initShape(sf::Vector2f pos) {
         shape.setPointCount(3);
         shape.setPoint(0, BOID_POINTS[0]);
         shape.setPoint(1, BOID_POINTS[1]);
         shape.setPoint(2, BOID_POINTS[2]);
-        shape.setOrigin(sf::Vector2f(5.f, 7.5f));
+        shape.setOrigin(sf::Vector2f(7.5f, 5.f));
 
         shape.setFillColor(sf::Color::Blue);
         shape.setPosition(pos);
@@ -64,10 +69,18 @@ public:
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             dir.y -= 1.f;
         }
+        dir = normalize(dir);
+    }
+
+    void updateRotation() {
+        float rot = atan2(dir.y, dir.x)*180.f/M_PI;
+        shape.setRotation(rot);
+        ghostShape.setRotation(rot);
     }
 
     void update(float deltaTime) {
         input();
+        updateRotation();
         shape.move(dir * speed * deltaTime);
         updateBoundsColliding();
     }
