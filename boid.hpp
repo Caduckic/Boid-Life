@@ -42,7 +42,6 @@ private:
         shape.setPosition(pos);
         float angle = fmod(atan2(dir.y,dir.x),M_PI);
         if (angle <= 0) angle = (M_PI*2) + angle;
-        std::cout << angle << std::endl;
         shape.setRotation(angle);
 
         ghostShape = shape;
