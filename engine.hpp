@@ -69,7 +69,13 @@ private:
 
     void initBoids() {
         for (size_t i {0}; i < BOID_COUNT; i++) {
-            boids.push_back(Boid({100.f+i, 100.f+i}, {-1.f, -0.3f}));
+            sf::Vector2f randomDir {static_cast<float>(rand() % 100 + 1), static_cast<float>(rand() % 100 + 1)};
+            boids.push_back(
+                Boid(
+                    {static_cast<float>(rand() % 200 + 1), static_cast<float>(rand() % 200 + 1)},
+                    normalize(randomDir)
+                )
+            );
         }
     }
 
