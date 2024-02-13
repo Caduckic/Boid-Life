@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <sstream>
+#include <ctime>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -84,6 +85,8 @@ private:
 
 public:
     Engine() {
+        // seed random
+        srand(time(NULL));
         initWindow();
         initBoids();
         initFontAndText();

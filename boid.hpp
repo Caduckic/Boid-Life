@@ -5,6 +5,7 @@
 #include <math.h>
 #include <iostream>
 #include <array>
+#include <ctime>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -37,7 +38,7 @@ private:
         shape.setPoint(2, BOID_POINTS[2]);
         shape.setOrigin(sf::Vector2f(7.5f, 5.f));
 
-        shape.setFillColor(sf::Color::Blue);
+        shape.setFillColor(sf::Color(rand()%255+1, rand()%255+1, rand()%255+1));
         shape.setPosition(pos);
 
         ghostShape = shape;
