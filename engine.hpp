@@ -134,8 +134,8 @@ public:
 
     void updateGlobalRotation() {
         GlobalRotation += deltaTime * GlobalRotationSpeed;
-        if (GlobalRotation >= 360.f) GlobalRotation = GlobalRotation - 360.f;
-        else if (GlobalRotation < 0) GlobalRotation = 360.f + GlobalRotation;
+        if (GlobalRotation >= 180.f) GlobalRotation = GlobalRotation - 360.f;
+        else if (GlobalRotation < -180.f) GlobalRotation = 360.f + GlobalRotation;
     }
 
     void updateBoids() {
