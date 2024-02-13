@@ -4,13 +4,18 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
-#include <vector>
+#include <array>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 #include "CONFIG.hpp"
 #include "helper.hpp"
+
+struct AngleWeight {
+    float angle;
+    float weight;
+};
 
 class Boid {
 private:
@@ -23,7 +28,7 @@ private:
     bool inputting {false};
 
     sf::Vector2f targetDir {0.f, 0.f};
-    std::vector<float> angles {}; // this will be for adding the weights
+    std::array<AngleWeight, BOID_COUNT> angles; // this will be for adding the weights
 
     void initShape(sf::Vector2f pos) {
         shape.setPointCount(3);
@@ -83,23 +88,29 @@ public:
         targetDir = normalize(targetDir);
     }
 
-    void addRotWeight(sf::Vector2f extraDir, float distance) {
-        // will use distance in the future to determine how much weight to add
+    void addRotWeight(sf::Vector2f extraDir, const unsigned index, float distance) {
         float newAngle = fmod(atan2(extraDir.y,extraDir.x),M_PI);
         if (newAngle <= 0) newAngle = (M_PI*2) + newAngle;
-        angles.push_back(newAngle);
+        // distance is used to make a value that is higher the closer another boid is, this will be our weights
+        angles.at(index) = {newAngle, (10*(100.f - distance)) / 300.f};
     }
 
     void normalizeTargetDir() {
         // averages the rotation weights and applies a normalized vector from it to target dir
         sf::Vector2f angleDir {0.f,0.f};
-        for (float angle : angles) {
-            angleDir.x += cos(angle);
-            angleDir.y += sin(angle);
+        for (AngleWeight& angle : angles) {
+            // if the weight is less than one ignore it
+            if (angle.weight < 1) continue;
+            
+            // else for the amount of weight floored to an int, add the angle
+            for (size_t i {0}; i < (int)floor(angle.weight); i++) {
+                angleDir.x += cos(angle.angle);
+                angleDir.y += sin(angle.angle);
+            }
         }
 
         targetDir = normalize(angleDir);
-        angles.clear();
+        angles.fill({0.f, 0.f});
     }
 
     void updateRotation(float deltaTime) {

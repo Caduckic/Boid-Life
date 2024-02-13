@@ -39,7 +39,8 @@ private:
     sf::Time lastTime;
 
     std::vector<Boid> boids;
-    // float GlobalRotation;
+    float GlobalRotation {0.f};
+    float GlobalRotationSpeed {5.f};
 
     void updateDeltaTime() {
         dt = deltaClock.restart();
@@ -66,7 +67,7 @@ private:
     }
 
     void initBoids() {
-        for (size_t i {0}; i < 200; i++) {
+        for (size_t i {0}; i < BOID_COUNT; i++) {
             boids.push_back(Boid({100.f+i, 100.f+i}, {-1.f, -0.3f}));
         }
     }
@@ -128,19 +129,51 @@ public:
         }
     }
 
-    void update() {
-        updateDeltaTime();
+    void updateGlobalRotation() {
+        GlobalRotation += deltaTime * GlobalRotationSpeed;
+        if (GlobalRotation >= 360.f) GlobalRotation = GlobalRotation - 360.f;
+        else if (GlobalRotation < 0) GlobalRotation = 360.f + GlobalRotation;
+    }
 
+    void updateBoids() {
         for (size_t i {0}; i < boids.size(); i++) {
+            unsigned index {0};
             for (size_t j {0}; j < boids.size(); j++) {
                 if (i != j) {
-                    float distance = getDistance(boids.at(i).getPosition(), boids.at(j).getPosition());
-                    sf::Vector2f dirToBoid = boids.at(i).getPosition() - boids.at(j).getPosition();
-                    boids.at(i).addRotWeight(dirToBoid, distance);
-                }
-                // boids.at(i).addToTargetDir(sf::Vector2f{1.f, 0.f}, 1.f);
-                // float distance = getDistance(sf::Vector2f{WINDOW_SIZE.x/2.f,WINDOW_SIZE.y/2.f}, boids.at(i).getPosition());
+                    sf::Vector2f otherBoidWindowPos = boids.at(j).getPosition();
+                    sf::Vector2f currentBoidPos = boids.at(i).getPosition();
+                    sf::Vector2f dirToBoid;
 
+                    float lastDistance = INFINITY;
+
+                    sf::Vector2f offsetVecs [] = {
+                        sf::Vector2f{0.f, 0.f},
+                        sf::Vector2f{200.f, 0.f},
+                        sf::Vector2f{-200.f, 0.f},
+                        sf::Vector2f{0.f, 200.f},
+                        sf::Vector2f{0.f, -200.f}
+                    };
+
+                    float distance {0};
+                    for (size_t i {0}; i < sizeof(offsetVecs); i++) {
+                        distance = getDistanceRaw(currentBoidPos, (otherBoidWindowPos + offsetVecs[i]));
+                        if (distance < lastDistance) {
+                            dirToBoid = currentBoidPos - (otherBoidWindowPos + offsetVecs[i]);
+                            lastDistance = distance;
+                        }
+                        // std::cout << distance << std::endl;
+                        // losing some accuracy for performace here, the less distance checks the better
+                        if (distance < 20.f) break;
+                    }
+        
+                    boids.at(i).addRotWeight(dirToBoid, index, distance);
+
+                    if (index == BOID_COUNT-1) std::cout << "issue here" << std::endl;
+                    index++;
+                }
+                float globalRads = GlobalRotation * M_PI/180.f;
+                sf::Vector2f globalDir {cos(globalRads), sin(globalRads)};
+                boids.at(i).addRotWeight(globalDir, BOID_COUNT-1, 0.f); // distance of zero to be the highest weight
             }
             boids.at(i).normalizeTargetDir();
 
@@ -148,11 +181,17 @@ public:
         }
     }
 
+    void update() {
+        updateDeltaTime();
+        updateGlobalRotation();
+        updateBoids();
+    }
+
     void render() {
         window->clear();
 
             // rendering boids
-            for (auto boid : boids) {
+            for (auto& boid : boids) {
                 boid.render(*window);
             }
 

@@ -28,4 +28,18 @@ float getDistance(const sf::Vector2<T>& p1, const sf::Vector2<T>& p2) {
     return sqrt((diffY * diffY) + (diffX * diffX));
 }
 
+template <class T>
+float getDistanceNoSqrt(const sf::Vector2<T>& p1, const sf::Vector2<T>& p2) {
+    float diffY = p1.y - p2.y;
+    float diffX = p1.x - p2.x;
+    return (diffY * diffY) + (diffX * diffX);
+}
+
+template <class T>
+float getDistanceRaw(const sf::Vector2<T>& p1, const sf::Vector2<T>& p2) {
+    float diffY = p1.y - p2.y;
+    float diffX = p1.x - p2.x;
+    return abs(diffY) + abs(diffX);
+}
+
 #endif
