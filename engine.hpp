@@ -50,7 +50,7 @@ private:
 
     void updateFPS() {
         sf::Time currentTime = FPSClock.getElapsedTime();
-        float fps = 1.0f / (currentTime.asSeconds() - lastTime.asSeconds());
+        float fps = floor(1.0f / (currentTime.asSeconds() - lastTime.asSeconds()));
         lastTime = currentTime;
 
         std::stringstream ss;
