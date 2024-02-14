@@ -200,13 +200,25 @@ public:
     }
 
     // debugging to see grid
-    void renderGrid() {
+    void renderGrid(bool boidBased) {
         sf::RectangleShape gridElement;
         gridElement.setFillColor(sf::Color(255, 0, 0, 50));
         gridElement.setSize(sf::Vector2f{GRID_SIZE - 2.f, GRID_SIZE - 2.f});
-        for (size_t i {0}; i < grid.size(); i++) { // rows
-            for (size_t j {0}; j < grid.at(i).size(); j++) { // elements
-                gridElement.setPosition(sf::Vector2f{j*GRID_SIZE, i*GRID_SIZE});
+        if (!boidBased) {
+            for (size_t i {0}; i < grid.size(); i++) { // rows
+                for (size_t j {0}; j < grid.at(i).size(); j++) { // elements
+                    gridElement.setPosition(sf::Vector2f{j*GRID_SIZE, i*GRID_SIZE});
+                    window->draw(gridElement);
+                }
+            }
+        }
+        else {
+            for (auto& boid : boids) {
+                sf::Vector2f pos = boid.getPosition();
+
+                int indexX = floor(pos.x / GRID_SIZE);
+                int indexY = floor(pos.y / GRID_SIZE);
+                gridElement.setPosition(indexX * GRID_SIZE, indexY * GRID_SIZE);
                 window->draw(gridElement);
             }
         }
@@ -215,7 +227,7 @@ public:
     void render() {
         window->clear();
 
-            renderGrid();
+            renderGrid(true);
 
             // rendering boids
             for (auto& boid : boids) {
