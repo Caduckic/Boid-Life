@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <array>
 #include <sstream>
 #include <ctime>
 
@@ -42,6 +43,8 @@ private:
     std::vector<Boid> boids;
     float GlobalRotation {0.f};
     float GlobalRotationSpeed {5.f};
+
+    std::array<std::array<std::vector<Boid>, GRID_COUNT>, GRID_COUNT> grid;
 
     void updateDeltaTime() {
         dt = deltaClock.restart();
@@ -196,8 +199,23 @@ public:
         updateBoids();
     }
 
+    // debugging to see grid
+    void renderGrid() {
+        sf::RectangleShape gridElement;
+        gridElement.setFillColor(sf::Color(255, 0, 0, 50));
+        gridElement.setSize(sf::Vector2f{GRID_SIZE - 2.f, GRID_SIZE - 2.f});
+        for (size_t i {0}; i < grid.size(); i++) { // rows
+            for (size_t j {0}; j < grid.at(i).size(); j++) { // elements
+                gridElement.setPosition(sf::Vector2f{j*GRID_SIZE, i*GRID_SIZE});
+                window->draw(gridElement);
+            }
+        }
+    }
+
     void render() {
         window->clear();
+
+            renderGrid();
 
             // rendering boids
             for (auto& boid : boids) {
