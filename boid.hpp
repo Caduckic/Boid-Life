@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
-#include <array>
+#include <vector>
 #include <ctime>
 
 #include <SFML/Graphics.hpp>
@@ -29,7 +29,7 @@ private:
     bool inputting {false};
 
     sf::Vector2f targetDir {0.f, 0.f};
-    std::array<AngleWeight, BOID_COUNT> angles; // this will be for adding the weights
+    std::vector<AngleWeight> angles; // this will be for adding the weights
 
     void initShape(sf::Vector2f pos) {
         shape.setPointCount(3);
@@ -42,7 +42,6 @@ private:
         shape.setPosition(pos);
         float angle = fmod(atan2(dir.y,dir.x),M_PI);
         if (angle <= 0) angle = (M_PI*2) + angle;
-        std::cout << angle << std::endl;
         shape.setRotation(angle);
 
         ghostShape = shape;
@@ -93,11 +92,12 @@ public:
         targetDir = normalize(targetDir);
     }
 
-    void addRotWeight(sf::Vector2f extraDir, const unsigned index, float distance) {
+    void addRotWeight(sf::Vector2f extraDir, float distance) {
         float newAngle = fmod(atan2(extraDir.y,extraDir.x),M_PI);
         if (newAngle <= 0) newAngle = (M_PI*2) + newAngle;
         // distance is used to make a value that is higher the closer another boid is, this will be our weights
-        angles.at(index) = {newAngle, (10*(100.f - distance)) / 300.f};
+        // std::cout << distance << std::endl;
+        angles.push_back({newAngle, (10*(100.f - distance)) / 200.f});
     }
 
     void normalizeTargetDir() {
@@ -115,7 +115,7 @@ public:
         }
 
         targetDir = normalize(angleDir);
-        angles.fill({0.f, 0.f});
+        angles.erase(angles.begin(), angles.end());
     }
 
     void updateRotation(float deltaTime) {
