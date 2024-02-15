@@ -72,6 +72,7 @@ private:
 
     void initBoids() {
         for (size_t i {0}; i < BOID_COUNT; i++) {
+            // for direction
             float x = static_cast<float>(rand() % 200 + 1);
             float y = static_cast<float>(rand() % 200 + 1);
             
@@ -82,7 +83,7 @@ private:
             randomDir = normalize(randomDir);
             boids.push_back(
                 std::make_shared<Boid>(
-                    sf::Vector2f{static_cast<float>(rand() % 200 + 1), static_cast<float>(rand() % 200 + 1)},
+                    sf::Vector2f{static_cast<float>(rand() % WINDOW_SIZE.x + 1), static_cast<float>(rand() % WINDOW_SIZE.y + 1)},
                     normalize(randomDir)
                 )
             );
@@ -218,10 +219,10 @@ public:
 
                         sf::Vector2f offsetVecs [] = {
                             sf::Vector2f{0.f, 0.f},
-                            sf::Vector2f{200.f, 0.f},
-                            sf::Vector2f{-200.f, 0.f},
-                            sf::Vector2f{0.f, 200.f},
-                            sf::Vector2f{0.f, -200.f}
+                            sf::Vector2f{static_cast<float>(WINDOW_SIZE.x), 0.f},
+                            sf::Vector2f{static_cast<float>(-WINDOW_SIZE.x), 0.f},
+                            sf::Vector2f{0.f, static_cast<float>(WINDOW_SIZE.y)},
+                            sf::Vector2f{0.f, static_cast<float>(-WINDOW_SIZE.y)}
                         };
 
                         float distance {0};

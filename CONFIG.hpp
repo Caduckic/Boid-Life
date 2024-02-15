@@ -4,14 +4,14 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
-const sf::Vector2i WINDOW_SIZE {200, 200};
+const sf::Vector2i WINDOW_SIZE {600, 600};
 
 const sf::Vector2f BOID_POINTS [] = {sf::Vector2f(0.f, 0.f), sf::Vector2f(0.f, 10.f), sf::Vector2f(15.f, 5.f)};
 
-const unsigned BOID_COUNT {100};
+const unsigned BOID_COUNT {1000};
 
-const unsigned GRID_COUNT {6}; // intXint Grid
+const unsigned GRID_COUNT {14}; // intXint Grid
 
-const unsigned GRID_SIZE {WINDOW_SIZE.x / GRID_COUNT};
+const float GRID_SIZE {static_cast<float>(WINDOW_SIZE.x) / static_cast<float>(GRID_COUNT)};
 
 #endif

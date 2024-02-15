@@ -152,19 +152,19 @@ public:
         // use 15 as its the largest the shape is able to be
         bool showGhost {false};
         if (pos.x < 15.f) {
-            ghostShape.setPosition(pos.x + 200.f, pos.y);
+            ghostShape.setPosition(pos.x + static_cast<float>(WINDOW_SIZE.x), pos.y);
             showGhost = true;
         }
         else if (pos.x > WINDOW_SIZE.x - 15.f) {
-            ghostShape.setPosition(pos.x - 200.f, pos.y);
+            ghostShape.setPosition(pos.x - static_cast<float>(WINDOW_SIZE.x), pos.y);
             showGhost = true;
         }
         if (pos.y < 15.f) {
-            ghostShape.setPosition(pos.x, pos.y + 200.f);
+            ghostShape.setPosition(pos.x, pos.y + static_cast<float>(WINDOW_SIZE.y));
             showGhost = true;
         }
         else if (pos.y > WINDOW_SIZE.y - 15.f) {
-            ghostShape.setPosition(pos.x, pos.y - 200.f);
+            ghostShape.setPosition(pos.x, pos.y - static_cast<float>(WINDOW_SIZE.y));
             showGhost = true;
         }
 
