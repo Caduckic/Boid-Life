@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <array>
 #include <sstream>
 #include <ctime>
 
@@ -39,9 +40,11 @@ private:
     bool displayFPS {true};
     sf::Time lastTime;
 
-    std::vector<Boid> boids;
+    std::vector<std::shared_ptr<Boid>> boids;
     float GlobalRotation {0.f};
     float GlobalRotationSpeed {5.f};
+
+    std::array<std::array<std::vector<std::shared_ptr<Boid>>, GRID_COUNT>, GRID_COUNT> grid;
 
     void updateDeltaTime() {
         dt = deltaClock.restart();
@@ -78,9 +81,9 @@ private:
             sf::Vector2f randomDir {x, y};
             randomDir = normalize(randomDir);
             boids.push_back(
-                Boid(
-                    {static_cast<float>(rand() % 200 + 1), static_cast<float>(rand() % 200 + 1)},
-                    randomDir
+                std::make_shared<Boid>(
+                    sf::Vector2f{static_cast<float>(rand() % 200 + 1), static_cast<float>(rand() % 200 + 1)},
+                    normalize(randomDir)
                 )
             );
         }
@@ -151,64 +154,165 @@ public:
         else if (GlobalRotation < -180.f) GlobalRotation = 360.f + GlobalRotation;
     }
 
+    void updateGrid() {
+        for (auto& row : grid) {
+            for (auto& element : row) {
+                element.clear();
+            }
+        }
+        for (std::shared_ptr<Boid> boid : boids) {
+            sf::Vector2f pos = boid->getPosition();
+
+            int indexX = floor(pos.x / GRID_SIZE);
+            if (indexX > GRID_COUNT - 1) indexX = GRID_COUNT - 1;
+            else if (indexX < 0) indexX = 0;
+            int indexY = floor(pos.y / GRID_SIZE);
+            if (indexY > GRID_COUNT - 1) indexY = GRID_COUNT - 1;
+            else if (indexY < 0) indexY = 0;
+
+            // auto it = std::find(grid.at(indexY).at(indexX).begin(), grid.at(indexY).at(indexX).end(), boid);
+            // if (it == grid.at(indexY).at(indexX).end()) {
+                grid.at(indexY).at(indexX).push_back(boid);
+            // }
+        }
+    }
+
     void updateBoids() {
         for (size_t i {0}; i < boids.size(); i++) {
-            unsigned index {0};
-            for (size_t j {0}; j < boids.size(); j++) {
-                if (i != j) {
-                    sf::Vector2f otherBoidWindowPos = boids.at(j).getPosition();
-                    sf::Vector2f currentBoidPos = boids.at(i).getPosition();
-                    sf::Vector2f dirToBoid;
+            sf::Vector2f pos = boids.at(i)->getPosition();
 
-                    float lastDistance = INFINITY;
+            // get grid position
+            int indexX = floor(pos.x / GRID_SIZE);
+            if (indexX > GRID_COUNT - 1) indexX = GRID_COUNT - 1;
+            else if (indexX < 0) indexX = 0;
+            int indexY = floor(pos.y / GRID_SIZE);
+            if (indexY > GRID_COUNT - 1) indexY = GRID_COUNT - 1;
+            else if (indexY < 0) indexY = 0;
+            
+            // get nearby grid elements
+            int left = (indexX - 1 < 0) ? GRID_COUNT - 1 : indexX - 1;
+            int top = (indexY - 1 < 0) ? GRID_COUNT - 1 : indexY - 1;
+            int right = (indexX + 1 > GRID_COUNT - 1) ? 0 : indexX + 1;
+            int bottom = (indexY + 1 > GRID_COUNT - 1) ? 0 : indexY + 1;
 
-                    sf::Vector2f offsetVecs [] = {
-                        sf::Vector2f{0.f, 0.f},
-                        sf::Vector2f{200.f, 0.f},
-                        sf::Vector2f{-200.f, 0.f},
-                        sf::Vector2f{0.f, 200.f},
-                        sf::Vector2f{0.f, -200.f}
-                    };
+            sf::Vector2i nearbyElements [] = {
+                {left, top},
+                {indexX, top},
+                {right, top},
+                {left, indexY},
+                {right, indexY},
+                {left, bottom},
+                {indexX, bottom},
+                {right, bottom}
+            };
 
-                    float distance {0};
-                    for (size_t i {0}; i < sizeof(offsetVecs); i++) {
-                        distance = getDistanceRaw(currentBoidPos, (otherBoidWindowPos + offsetVecs[i]));
-                        if (distance < lastDistance) {
-                            dirToBoid = currentBoidPos - (otherBoidWindowPos + offsetVecs[i]);
-                            lastDistance = distance;
+            for (size_t nE {0}; nE < sizeof(nearbyElements) / sizeof(sf::Vector2i); nE++) {
+                for (size_t j {0}; j < grid.at(nearbyElements[nE].y).at(nearbyElements[nE].x).size(); j++){
+                    std::shared_ptr<Boid>& otherBoid = grid.at(nearbyElements[nE].y).at(nearbyElements[nE].x).at(j);
+                    if (boids.at(i).get() != otherBoid.get()) {
+                        sf::Vector2f otherBoidWindowPos = otherBoid->getPosition();
+                        sf::Vector2f currentBoidPos = boids.at(i)->getPosition();
+                        sf::Vector2f dirToBoid;
+
+                        float lastDistance = INFINITY;
+
+                        sf::Vector2f offsetVecs [] = {
+                            sf::Vector2f{0.f, 0.f},
+                            sf::Vector2f{200.f, 0.f},
+                            sf::Vector2f{-200.f, 0.f},
+                            sf::Vector2f{0.f, 200.f},
+                            sf::Vector2f{0.f, -200.f}
+                        };
+
+                        float distance {0};
+                        for (size_t k {0}; k < sizeof(offsetVecs) / sizeof(sf::Vector2f); k++) {
+                            distance = getDistanceRaw(currentBoidPos, (otherBoidWindowPos + offsetVecs[k]));
+                            if (distance < lastDistance) {
+                                dirToBoid = currentBoidPos - (otherBoidWindowPos + offsetVecs[k]);
+                                lastDistance = distance;
+                            }
                         }
-                        // std::cout << distance << std::endl;
-                        // losing some accuracy for performace here, the less distance checks the better
-                        if (distance < 20.f) break;
+                        boids.at(i)->addRotWeight(dirToBoid, lastDistance);
                     }
-        
-                    boids.at(i).addRotWeight(dirToBoid, index, distance);
-
-                    if (index == BOID_COUNT-1) std::cout << "issue here" << std::endl;
-                    index++;
                 }
-                float globalRads = GlobalRotation * M_PI/180.f;
-                sf::Vector2f globalDir {cos(globalRads), sin(globalRads)};
-                boids.at(i).addRotWeight(globalDir, BOID_COUNT-1, 0.f); // distance of zero to be the highest weight
             }
-            boids.at(i).normalizeTargetDir();
+            float globalRads = GlobalRotation * M_PI/180.f;
+            sf::Vector2f globalDir {cos(globalRads), sin(globalRads)};
+            boids.at(i)->addRotWeight(globalDir, 30.f); // adds a global weight all boids follow
+            boids.at(i)->normalizeTargetDir();
 
-            boids.at(i).update(deltaTime);
+            boids.at(i)->update(deltaTime);
         }
     }
 
     void update() {
         updateDeltaTime();
         updateGlobalRotation();
+        updateGrid();
         updateBoids();
+    }
+
+    // debugging to see grid
+    void renderGrid(bool boidBased) {
+        sf::RectangleShape gridElement;
+        gridElement.setFillColor(sf::Color(255, 0, 0, 50));
+        gridElement.setSize(sf::Vector2f{GRID_SIZE - 2.f, GRID_SIZE - 2.f});
+        if (!boidBased) {
+            for (size_t i {0}; i < grid.size(); i++) { // rows
+                for (size_t j {0}; j < grid.at(i).size(); j++) { // elements
+                    gridElement.setPosition(sf::Vector2f{static_cast<float>(j*GRID_SIZE), static_cast<float>(i*GRID_SIZE)});
+                    window->draw(gridElement);
+                }
+            }
+        }
+        else {
+            for (auto& boid : boids) {
+                sf::Vector2f pos = boid->getPosition();
+
+                int indexX = floor(pos.x / GRID_SIZE);
+                if (indexX > GRID_COUNT - 1) indexX = GRID_COUNT - 1;
+                else if (indexX < 0) indexX = 0;
+                int indexY = floor(pos.y / GRID_SIZE);
+                if (indexY > GRID_COUNT - 1) indexY = GRID_COUNT - 1;
+                else if (indexY < 0) indexY = 0;
+                gridElement.setPosition(indexX * GRID_SIZE, indexY * GRID_SIZE);
+                window->draw(gridElement);
+                
+                int left = (indexX - 1 < 0) ? GRID_COUNT - 1 : indexX - 1;
+                int top = (indexY - 1 < 0) ? GRID_COUNT - 1 : indexY - 1;
+                int right = (indexX + 1 > GRID_COUNT - 1) ? 0 : indexX + 1;
+                int bottom = (indexY + 1 > GRID_COUNT - 1) ? 0 : indexY + 1;
+
+                sf::Vector2i nearbyElements [] = {
+                    {left, top},
+                    {indexX, top},
+                    {right, top},
+                    {left, indexY},
+                    {right, indexY},
+                    {left, bottom},
+                    {indexX, bottom},
+                    {right, bottom}
+                };
+
+                for (size_t i {0}; i < sizeof(nearbyElements) / sizeof(sf::Vector2i); i++) {
+                    sf::RectangleShape s;
+                    s.setFillColor(sf::Color(255, 0, 0, 50));
+                    s.setSize(sf::Vector2f{GRID_SIZE - 2.f, GRID_SIZE - 2.f});
+                    s.setPosition(nearbyElements[i].x * GRID_SIZE, nearbyElements[i].y * GRID_SIZE);
+                    window->draw(s);
+                }
+            }
+        }
     }
 
     void render() {
         window->clear();
 
+            // renderGrid(true);
+
             // rendering boids
             for (auto& boid : boids) {
-                boid.render(*window);
+                boid->render(*window);
             }
 
             if (displayFPS)

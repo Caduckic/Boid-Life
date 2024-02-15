@@ -10,4 +10,8 @@ const sf::Vector2f BOID_POINTS [] = {sf::Vector2f(0.f, 0.f), sf::Vector2f(0.f, 1
 
 const unsigned BOID_COUNT {100};
 
+const unsigned GRID_COUNT {6}; // intXint Grid
+
+const unsigned GRID_SIZE {WINDOW_SIZE.x / GRID_COUNT};
+
 #endif
