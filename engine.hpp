@@ -72,7 +72,14 @@ private:
 
     void initBoids() {
         for (size_t i {0}; i < BOID_COUNT; i++) {
-            sf::Vector2f randomDir {static_cast<float>(rand() % 100 + 1), static_cast<float>(rand() % 100 + 1)};
+            float x = static_cast<float>(rand() % 200 + 1);
+            float y = static_cast<float>(rand() % 200 + 1);
+            
+            // easier than going to full cpp randomness, jeez why can't things just be easy
+            if (x > 100.f) x -= 200.f;
+            if (y > 100.f) y -= 200.f;
+            sf::Vector2f randomDir {x, y};
+            randomDir = normalize(randomDir);
             boids.push_back(
                 std::make_shared<Boid>(
                     sf::Vector2f{static_cast<float>(rand() % 200 + 1), static_cast<float>(rand() % 200 + 1)},
