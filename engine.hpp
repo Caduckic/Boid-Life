@@ -217,9 +217,40 @@ public:
                 sf::Vector2f pos = boid.getPosition();
 
                 int indexX = floor(pos.x / GRID_SIZE);
+                if (indexX > GRID_COUNT - 1) indexX = GRID_COUNT - 1;
+                else if (indexX < 0) indexX = 0;
                 int indexY = floor(pos.y / GRID_SIZE);
+                if (indexY > GRID_COUNT - 1) indexY = GRID_COUNT - 1;
+                else if (indexY < 0) indexY = 0;
                 gridElement.setPosition(indexX * GRID_SIZE, indexY * GRID_SIZE);
                 window->draw(gridElement);
+                
+                int left = (indexX - 1 < 0) ? GRID_COUNT - 1 : indexX - 1;
+                int top = (indexY - 1 < 0) ? GRID_COUNT - 1 : indexY - 1;
+                int right = (indexX + 1 > GRID_COUNT - 1) ? 0 : indexX + 1;
+                int bottom = (indexY + 1 > GRID_COUNT - 1) ? 0 : indexY + 1;
+
+                sf::Vector2i nearbyElements [] = {
+                    {left, top},
+                    {indexX, top},
+                    {right, top},
+                    {left, indexY},
+                    {right, indexY},
+                    {left, bottom},
+                    {indexX, bottom},
+                    {right, bottom}
+                };
+
+                int zeroTimes {0};
+                for (size_t i {0}; i < sizeof(nearbyElements) / sizeof(sf::Vector2i); i++) {
+                    sf::RectangleShape s;
+                    s.setFillColor(sf::Color(255, 0, 0, 50));
+                    s.setSize(sf::Vector2f{GRID_SIZE - 2.f, GRID_SIZE - 2.f});
+                    s.setPosition(nearbyElements[i].x * GRID_SIZE, nearbyElements[i].y * GRID_SIZE);
+                    if (nearbyElements[i].x == 0) zeroTimes++;
+                    window->draw(s);
+                }
+                std::cout << zeroTimes << std::endl;
             }
         }
     }

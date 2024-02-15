@@ -70,7 +70,7 @@ public:
         }
     }
 
-    // temp to test out rendering at edges of the window
+    // useful for debugging
     void input(float deltaTime) {
         inputting = false;
         targetDir = {0.f, 0.f};
@@ -140,7 +140,8 @@ public:
     void update(float deltaTime) {
         // input(deltaTime);
         updateRotation(deltaTime);
-        shape.move(dir * speed * deltaTime);
+        // if (inputting)
+            shape.move(dir * speed * deltaTime);
         updateBoundsColliding();
     }
 
